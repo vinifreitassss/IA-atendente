@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IA Atendente — alpha 0.0.1</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <h1>IA Atendente</h1>
+      <p class="muted">Alpha 0.0.1 — chat local para testar a atendente antes do WhatsApp.</p>
+
+      <section class="card">
+        <h2>Status</h2>
+        <div id="health">Carregando...</div>
+      </section>
+
+      <section class="card">
+        <h2>Contexto carregado</h2>
+        <div id="contexto">Carregando...</div>
+      </section>
+
+      <button id="newConversation" class="secondary">Nova conversa</button>
+    </aside>
+
+    <section class="chat-panel">
+      <header class="chat-header">
+        <div>
+          <strong>Chat de teste</strong>
+          <p class="muted">Digite como se fosse o cliente. A IA responderá e sugerirá ações/anexos.</p>
+        </div>
+      </header>
+
+      <div id="messages" class="messages"></div>
+
+      <form id="chatForm" class="composer">
+        <textarea id="messageInput" rows="3" placeholder="Ex: Boa tarde, queria troféus personalizados para campeonato infantil..."></textarea>
+        <button type="submit">Enviar</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
