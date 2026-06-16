@@ -13,10 +13,19 @@ function addMessage(role, text, data = null) {
   el.textContent = text;
 
   if (data) {
+    const debug = data.debug || {};
+    const tokens = debug.tokens || {};
+    const tokenLine = tokens.total_tokens
+      ? `Tokens: ${tokens.total_tokens} total (${tokens.input_tokens || "?"} entrada / ${tokens.output_tokens || "?"} saída)<br>`
+      : `Tokens: não informado (${escapeHtml(debug.modo || "desconhecido")})<br>`;
+
     const meta = document.createElement("div");
     meta.className = "meta";
     meta.innerHTML = `
       <strong>Interno</strong><br>
+      Modo: ${escapeHtml(debug.modo || "desconhecido")}<br>
+      Modelo: ${escapeHtml(debug.modelo || "-")}<br>
+      ${tokenLine}
       Intenção: ${escapeHtml(data.intencao)}<br>
       Etapa: ${escapeHtml(data.etapa)}<br>
       Precisa humano: ${data.precisa_humano ? "sim" : "não"}<br>
