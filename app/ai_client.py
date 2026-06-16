@@ -4,6 +4,7 @@ from typing import Any
 from openai import OpenAI
 
 from app.config import get_settings
+from app.router import LocalRouter
 from app.schemas import AttachmentAction, ChatResponse
 from app.storage import Storage
 from app.tools import LocalTools
@@ -109,19 +110,25 @@ class AtendimentoAI:
         self.settings = get_settings()
         self.storage = storage or Storage()
         self.tools = tools or LocalTools()
+        self.router = LocalRouter(self.tools)
         self.client = OpenAI(api_key=self.settings.openai_api_key) if self.settings.openai_api_key else None
 
     def responder(self, conversation_id: str, mensagem: str) -> ChatResponse:
         historico = self.storage.get_recent_messages(conversation_id)
         estado = self.storage.get_state(conversation_id)
-        contexto = self.tools.build_context(mensagem)
 
-        if not self.client:
-            resposta = self._fallback_sem_api(mensagem, contexto)
-        else:
-            resposta = self._chamar_openai(mensagem, historico, estado, contexto)
+        resposta = self.router.tentar_responder(mensagem, estado)
+        contexto: dict[str, Any] = {}
+
+        if resposta is None:
+            contexto = self.tools.build_context(mensagem)
+            if not self.client:
+                resposta = self._fallback_sem_api(mensagem, contexto)
+            else:
+                resposta = self._chamar_openai(mensagem, historico, estado, contexto)
 
         usage = resposta.get("_usage", {}) if isinstance(resposta, dict) else {}
+        modo = resposta.get("_modo") if isinstance(resposta, dict) else None
         dados = self._normalizar_resposta(resposta)
         novo_estado = {
             "ultima_intencao": dados["intencao"],
@@ -131,6 +138,9 @@ class AtendimentoAI:
         }
         self.storage.save_state(conversation_id, novo_estado)
         self.storage.add_message(conversation_id, "assistant", dados["resposta_cliente"])
+
+        modo_debug = modo or ("openai" if self.client else "fallback_local")
+        modelo_debug = "sem_modelo" if modo_debug == "roteador_local" else (self.settings.openai_model if self.client else "fallback_sem_api")
 
         return ChatResponse(
             conversation_id=conversation_id,
@@ -143,8 +153,8 @@ class AtendimentoAI:
             precisa_humano=dados["precisa_humano"],
             motivo_humano=dados["motivo_humano"],
             debug={
-                "modo": "openai" if self.client else "fallback_local",
-                "modelo": self.settings.openai_model if self.client else "fallback_sem_api",
+                "modo": modo_debug,
+                "modelo": modelo_debug,
                 "tokens": usage,
                 "produtos_consultados": [p.get("codigo") for p in contexto.get("produtos_relevantes", [])],
                 "catalogos_consultados": [c.get("codigo") for c in contexto.get("catalogos_relevantes", [])],
@@ -213,6 +223,7 @@ class AtendimentoAI:
         try:
             data = json.loads(text)
             data["_usage"] = usage
+            data["_modo"] = "openai"
             return data
         except json.JSONDecodeError as exc:
             return self._erro_humano(
@@ -332,4 +343,5 @@ class AtendimentoAI:
             "acoes": acoes,
             "precisa_humano": False,
             "motivo_humano": None,
+            "_modo": "fallback_local",
         }
