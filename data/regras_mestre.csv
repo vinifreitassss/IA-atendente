@@ -1,0 +1,10 @@
+id;tema;regra;intencoes_relacionadas;chamar_humano_padrao;observacao
+RM-001;aprovacao_layout;Aprovação de layout deve ocorrer por link único antes da produção.;explicar_aprovacao_layout;nao;Substitui fluxo antigo de aprovação por WhatsApp.
+RM-002;alteracao_layout;Alterações devem ocorrer antes da produção. Após aprovação, chamar humano para verificar viabilidade.;explicar_ou_solicitar_alteracao;depende;Confirmar limite/cobrança de alterações com Vinícius.
+RM-003;preco;A IA não deve inventar preço. Deve consultar produtos.csv/tabela vigente ou chamar humano.;iniciar_orcamento;depende;Preços fixos das planilhas antigas precisam ir para produtos.csv.
+RM-004;prazo;A IA não deve prometer prazo fixo sem regra vigente. Prazo conta após aprovação do layout e confirmação do pedido.;informar_prazo;depende;Prazos antigos devem ser confirmados.
+RM-005;status;A IA não deve assumir status do pedido. Deve consultar sistema ou chamar humano.;consultar_status_pedido;sim;Futuro: tool consultar_status_pedido.
+RM-006;nota_fiscal;Solicitação de nota fiscal deve ir para etapa segura ou humano.;solicitar_nota_fiscal;sim;Evitar coleta solta de dados fiscais no chat.
+RM-007;reclamacao_pos_venda;Reclamações devem ser acolhidas, pedir fotos/descrição e chamar humano.;tratar_reclamacao_pos_venda;sim;Não prometer refazer sem análise.
+RM-008;catalogos;Enviar catálogo localmente só se geral/específico ou houver contexto claro; se ambíguo, IA pergunta/decide.;enviar_catalogo_ou_modelos;nao;Já refletido no roteador local.
+RM-009;logo_vs_layout;A empresa faz layout/personalização, não criação de identidade visual/logo do zero.;explicar_logo_vs_layout;nao;Frasear com cuidado comercial.
