@@ -37,12 +37,35 @@ class LocalTools:
         self.media_dir = Path(settings.media_dir)
         self.catalog_dir = Path(settings.catalog_dir)
 
+    def _read_text_flexible(self, path: Path) -> str:
+        """Lê CSVs salvos tanto em UTF-8 quanto em encoding padrão do Windows.
+
+        Muitas vezes o usuário abre/salva CSV no Excel ou Bloco de Notas e o arquivo
+        fica em cp1252/latin-1. Sem esse fallback, o chat quebra com UnicodeDecodeError.
+        """
+        encodings = ("utf-8-sig", "utf-8", "cp1252", "latin-1")
+        last_error: Exception | None = None
+
+        for encoding in encodings:
+            try:
+                return path.read_text(encoding=encoding)
+            except UnicodeDecodeError as exc:
+                last_error = exc
+
+        raise UnicodeDecodeError(
+            "utf-8",
+            b"",
+            0,
+            1,
+            f"Nao foi possivel ler {path}. Ultimo erro: {last_error}",
+        )
+
     def _read_csv(self, filename: str) -> list[dict[str, str]]:
         path = self.data_dir / filename
         if not path.exists():
             return []
 
-        content = path.read_text(encoding="utf-8-sig")
+        content = self._read_text_flexible(path)
         sample = content[:2048]
         try:
             dialect = csv.Sniffer().sniff(sample, delimiters=",;")
