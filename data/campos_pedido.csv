@@ -1,0 +1,10 @@
+ativo;campo;obrigatorio;pergunta;observacao
+sim;produto;sim;Qual produto voce deseja?;Usar codigo do produto quando possivel.
+sim;quantidade;sim;Quantas unidades voce precisa?;Necessario para preco e prazo.
+sim;tema;nao;Qual tema ou evento deve aparecer na personalizacao?;Exemplo: campeonato, aniversario, torneio, formatura.
+sim;textos_personalizacao;nao;Quais textos devem aparecer na arte?;Nomes, colocacoes, nome do evento, data ou frase.
+sim;arte_pronta;sim;Voce ja tem a arte pronta ou quer que a gente crie?;Define se vai para ajuste tecnico ou criacao de layout.
+sim;prazo_desejado;sim;Para quando voce precisa?;Urgencia deve chamar humano.
+sim;identificacao_cliente;sim;Qual identificacao devo colocar no rascunho?;No alpha, nao salvar dados sensiveis de exemplo no repositorio.
+sim;cidade_entrega;nao;Qual cidade de entrega?;Para etapa futura de frete.
+sim;resumo_confirmado;sim;Posso confirmar esse resumo?;Antes de pagamento ou pedido oficial.
