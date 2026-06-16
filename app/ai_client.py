@@ -85,6 +85,13 @@ Sua função neste alpha:
 - colete dados para rascunho de pedido, mas não diga que o pedido está fechado sem confirmação humana;
 - no começo de orçamento, priorize: produto, quantidade, tema/personalização, se já tem arte pronta e prazo desejado.
 
+Regras de contexto:
+- mantenha a categoria já escolhida pelo cliente. Se ele disse troféus, não troque para medalhas;
+- se o cliente corrigir a IA, aceite a correção e atualize os dados coletados;
+- se o cliente pedir "média de valor" e não houver preço cadastrado, explique que precisa de quantidade/modelo e não invente valor;
+- se o cliente citar prêmios como campeão, artilheiro e melhor goleiro, trate isso como tipos de personalização/premiação, não como produtos diferentes;
+- para pedidos visuais, ofereça imagens ou catálogo quando houver arquivo cadastrado no contexto.
+
 Você deve sempre responder em JSON seguindo o schema. Não escreva nada fora do JSON.
 
 Tipos de ação:
@@ -114,6 +121,7 @@ class AtendimentoAI:
         else:
             resposta = self._chamar_openai(mensagem, historico, estado, contexto)
 
+        usage = resposta.get("_usage", {}) if isinstance(resposta, dict) else {}
         dados = self._normalizar_resposta(resposta)
         novo_estado = {
             "ultima_intencao": dados["intencao"],
@@ -135,7 +143,9 @@ class AtendimentoAI:
             precisa_humano=dados["precisa_humano"],
             motivo_humano=dados["motivo_humano"],
             debug={
+                "modo": "openai" if self.client else "fallback_local",
                 "modelo": self.settings.openai_model if self.client else "fallback_sem_api",
+                "tokens": usage,
                 "produtos_consultados": [p.get("codigo") for p in contexto.get("produtos_relevantes", [])],
                 "catalogos_consultados": [c.get("codigo") for c in contexto.get("catalogos_relevantes", [])],
             },
@@ -198,9 +208,12 @@ class AtendimentoAI:
                 motivo="Falha na chamada da OpenAI. Verifique OPENAI_API_KEY, OPENAI_MODEL e internet.",
             )
 
+        usage = self._extract_usage(response)
         text = self._extract_text(response)
         try:
-            return json.loads(text)
+            data = json.loads(text)
+            data["_usage"] = usage
+            return data
         except json.JSONDecodeError as exc:
             return self._erro_humano(
                 observacao=f"JSON inválido da IA: {exc}. Texto recebido: {text[:500]}",
@@ -224,6 +237,21 @@ class AtendimentoAI:
                 if isinstance(content, dict) and content.get("text"):
                     parts.append(str(content["text"]))
         return "\n".join(parts).strip()
+
+    def _extract_usage(self, response: Any) -> dict[str, Any]:
+        if hasattr(response, "model_dump"):
+            data = response.model_dump()
+        elif isinstance(response, dict):
+            data = response
+        else:
+            data = {}
+
+        usage = data.get("usage") or {}
+        return {
+            "input_tokens": usage.get("input_tokens"),
+            "output_tokens": usage.get("output_tokens"),
+            "total_tokens": usage.get("total_tokens"),
+        }
 
     def _normalizar_resposta(self, data: dict[str, Any]) -> dict[str, Any]:
         dados_lista = data.get("dados_coletados") or []
