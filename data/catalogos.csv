@@ -1,0 +1,5 @@
+ativo;codigo;nome;categoria;arquivo;descricao;quando_enviar;tags
+sim;CAT-TROF-MDF;Catalogo de trofeus MDF;trofeu;catalogos/catalogo_trofeus_mdf.pdf;PDF com modelos de trofeus em MDF.;cliente quer ver modelos, cliente indeciso, evento escolar, campeonato infantil;trofeu;mdf;infantil;escolar;futebol
+sim;CAT-TROF-ACR;Catalogo de trofeus acrilico;trofeu;catalogos/catalogo_trofeus_acrilico.pdf;PDF com modelos de trofeus em acrilico.;cliente busca modelo premium, evento corporativo, premiacao especial;trofeu;acrilico;premium;corporativo
+sim;CAT-MED;Catalogo de medalhas;medalha;catalogos/catalogo_medalhas.pdf;PDF com modelos de medalhas personalizadas.;cliente pede medalhas, torneio, corrida, campeonato;medalha;corrida;campeonato;escola
+sim;CAT-GERAL;Catalogo geral;geral;catalogos/catalogo_geral.pdf;PDF com principais produtos da empresa.;cliente nao sabe o que escolher, quer ver tudo, atendimento inicial;catalogo;geral;modelos;personalizados
