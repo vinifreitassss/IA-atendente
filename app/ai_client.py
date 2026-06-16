@@ -110,7 +110,7 @@ class AtendimentoAI:
         contexto = self.tools.build_context(mensagem)
 
         if not self.client:
-            resposta = self._fallback_sem_api(conversation_id, mensagem, contexto)
+            resposta = self._fallback_sem_api(mensagem, contexto)
         else:
             resposta = self._chamar_openai(mensagem, historico, estado, contexto)
 
@@ -141,6 +141,26 @@ class AtendimentoAI:
             },
         )
 
+    def _erro_humano(self, observacao: str, motivo: str) -> dict[str, Any]:
+        return {
+            "resposta_cliente": "Tive uma dificuldade interna aqui. Vou chamar uma pessoa da equipe para te ajudar sem te passar informação errada.",
+            "intencao": "erro_interno",
+            "etapa": "chamar_humano",
+            "dados_coletados": [],
+            "proximas_perguntas": [],
+            "acoes": [
+                {
+                    "tipo": "chamar_humano",
+                    "arquivo": None,
+                    "legenda": None,
+                    "produto_codigo": None,
+                    "observacao": observacao,
+                }
+            ],
+            "precisa_humano": True,
+            "motivo_humano": motivo,
+        }
+
     def _chamar_openai(
         self,
         mensagem: str,
@@ -156,44 +176,36 @@ class AtendimentoAI:
             "observacao": "Use somente os dados fornecidos. Se não souber, pergunte ou chame humano.",
         }
 
-        response = self.client.responses.create(
-            model=self.settings.openai_model,
-            input=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
-            ],
-            text={
-                "format": {
-                    "type": "json_schema",
-                    "name": "atendente_response",
-                    "strict": True,
-                    "schema": OUTPUT_SCHEMA,
-                }
-            },
-        )
+        try:
+            response = self.client.responses.create(
+                model=self.settings.openai_model,
+                input=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+                ],
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "atendente_response",
+                        "strict": True,
+                        "schema": OUTPUT_SCHEMA,
+                    }
+                },
+            )
+        except Exception as exc:
+            return self._erro_humano(
+                observacao=f"Erro na chamada OpenAI: {type(exc).__name__}: {exc}",
+                motivo="Falha na chamada da OpenAI. Verifique OPENAI_API_KEY, OPENAI_MODEL e internet.",
+            )
 
         text = self._extract_text(response)
         try:
             return json.loads(text)
         except json.JSONDecodeError as exc:
-            return {
-                "resposta_cliente": "Tive uma dificuldade para interpretar a resposta interna. Vou chamar uma pessoa da equipe para te ajudar.",
-                "intencao": "erro_resposta_ia",
-                "etapa": "chamar_humano",
-                "dados_coletados": [],
-                "proximas_perguntas": [],
-                "acoes": [
-                    {
-                        "tipo": "chamar_humano",
-                        "arquivo": None,
-                        "legenda": None,
-                        "produto_codigo": None,
-                        "observacao": f"JSON inválido da IA: {exc}",
-                    }
-                ],
-                "precisa_humano": True,
-                "motivo_humano": "Erro ao processar resposta estruturada da IA.",
-            }
+            return self._erro_humano(
+                observacao=f"JSON inválido da IA: {exc}. Texto recebido: {text[:500]}",
+                motivo="Erro ao processar resposta estruturada da IA.",
+            )
 
     def _extract_text(self, response: Any) -> str:
         if hasattr(response, "output_text") and response.output_text:
@@ -206,7 +218,6 @@ class AtendimentoAI:
         else:
             return str(response)
 
-        # Fallback defensivo para diferentes formatos de SDK.
         parts: list[str] = []
         for item in data.get("output", []) or []:
             for content in item.get("content", []) or []:
@@ -247,7 +258,7 @@ class AtendimentoAI:
             "motivo_humano": data.get("motivo_humano"),
         }
 
-    def _fallback_sem_api(self, conversation_id: str, mensagem: str, contexto: dict[str, Any]) -> dict[str, Any]:
+    def _fallback_sem_api(self, mensagem: str, contexto: dict[str, Any]) -> dict[str, Any]:
         produtos = contexto.get("produtos_relevantes", [])
         catalogos = contexto.get("catalogos_relevantes", [])
         produto = produtos[0] if produtos else {}
