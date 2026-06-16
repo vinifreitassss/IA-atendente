@@ -1,0 +1,9 @@
+id;processo;gatilho;passo_ia;saida_esperada;observacao
+PR-001;orcamento_inicial;Cliente pede orcamento;Coletar produto, quantidade, personalizacao, prazo e modelo de referencia se houver;Rascunho de orcamento ou chamar humano;cliente indeciso, modelo externo, preco nao cadastrado
+PR-002;catalogo_modelos;Cliente pede catalogo/modelos/fotos;Se categoria clara, sugerir arquivo; se ambigua, perguntar ou usar IA;Acao enviar_documento/enviar_imagem;muitos catalogos disponiveis
+PR-003;layout_aprovacao;Cliente pergunta sobre arte/layout;Explicar previa e link unico de aprovacao;Resposta e possivel acao de link no futuro;fluxo antigo do WhatsApp deve ser removido
+PR-004;alteracao_layout;Cliente pede alteracao;Antes da producao: coletar alteracoes; depois da aprovacao: chamar humano;chamar_humano se pos-aprovacao;confirmar politica de quantidade/cobranca
+PR-005;status_pedido;Cliente pergunta status/prazo/rastreio;Pedir identificacao e consultar sistema;consultar_status_pedido;nunca assumir andamento
+PR-006;pos_venda_reclamacao;Cliente relata erro/avaria/falta;Acolher, pedir fotos e descricao, chamar humano;chamar_humano;registrar ocorrencia
+PR-007;documento_pedido;Cliente pede documento do pedido;Encaminhar para etapa segura/humano;chamar_humano;evitar coleta livre no chat
+PR-008;pedido_repetido;Cliente quer repetir pedido;Consultar historico e confirmar se e igual ou com alteracoes;consultar_historico_pedido;futuro: banco de pedidos
